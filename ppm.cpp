@@ -62,6 +62,7 @@ vec3 color(const ray& r, hitable* world, int depth) {
 int main() {
 	float rx = 1920, ry = 1080;
 	int ns = 1000;
+	vec3 res;
 
 	cout << "P3" << endl;
 	cout << rx << " " << ry << " 255" << endl;
@@ -78,14 +79,16 @@ int main() {
 	for (int j = ry-1; j >= 0; j--) {
 		for(int i = 0 ; i < rx ; i++) {
 			vec3 c(0.0, 0.0, 0.0);
+			#pragma omp parallel for schedule(dynamic)
 			for(int s = 0 ; s < ns ; s++) {
 				float u = float(i + drand48())/rx;
 				float v = float(j + drand48())/ry;
 				ray r = cam.get_ray(u,v);
-				c += color(r,world,0);
+				res = color(r,world,0);
+				#pragma omp critical
+				c += res;
 			}
 			c /= float(ns);
-			//cout << i << " " << j << endl;
 			cout << int(sqrt(c[0])*255.9) << " " << int(sqrt(c[1])*255.9) << " " << int(sqrt(c[2])*255.9) << " ";
 		}
 		cout << endl;
